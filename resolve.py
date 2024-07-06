@@ -1,6 +1,6 @@
 import logging
 import sqlite3
-import sys
+import sys, time
 import socket
 
 logger = logging.getLogger('resolveMain')
@@ -42,9 +42,16 @@ def get_name(listIp):
             conn.commit()
 
 def main():
-    listIp = get_ip()
-    logger.info("Size {}".format(len(listIp)))
-    get_name(listIp)
+    while (1):
+        start = time.perf_counter()
+        listIp = get_ip()
+        logger.info("Size {}".format(len(listIp)))
+        get_name(listIp)
+        conn.commit()
+        finish = time.perf_counter()
+        logger.info(f'Finished in {round(finish-start, 2)} second(s)')
+        time.sleep(60)
+    
 
 if __name__ == '__main__':
     sys.exit(main())

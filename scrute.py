@@ -8,11 +8,11 @@ import logging
 
 # create logger
 logger = logging.getLogger('scruteMain')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # create console handler and set level to debug
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -107,11 +107,14 @@ def main():
     create_table(hostname)
     create_table_ip()
     while (1):
+        start = time.perf_counter()
         list_con = psutil.net_connections(kind='all')
         logger.info("Work on a list of " + str(len(list_con)))
         for connection in list_con :
             manage_connection(connection,hostname)
         conn.commit()
+        finish = time.perf_counter()
+        logger.info(f'Finished in {round(finish-start, 2)} second(s)')
         time.sleep(10)
         
 
