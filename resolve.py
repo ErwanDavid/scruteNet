@@ -11,7 +11,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-conn = sqlite3.connect("db_connection.sqlite3", timeout=20)
+conn = sqlite3.connect("DBs/db_connection.sqlite3db_connection.sqlite3", timeout=20)
 cursor = conn.cursor()
 
 def insert_sql(ip, name):

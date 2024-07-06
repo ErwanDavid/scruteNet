@@ -23,7 +23,7 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-conn = sqlite3.connect("db_connection.sqlite3", timeout=20)
+conn = sqlite3.connect("DBs/db_connection.sqlite3", timeout=20)
 cursor = conn.cursor()
 
 map_psutil_sql = {}
@@ -43,7 +43,7 @@ list_str_crTable = ",".join(list_field_crTable)
 def create_table(hostname):
     sql_crTable = "CREATE TABLE IF NOT EXISTS t_" + hostname + " (" +  list_str_crTable
     sql_crTable = sql_crTable +  ", CONSTRAINT pk_" + hostname + " PRIMARY KEY (lip, lpo, rip, rpo));"
-    logger.debug(sql_crTable)
+    logger.info(sql_crTable)
     cursor.execute(sql_crTable)
 
 def create_table_ip():
@@ -104,6 +104,7 @@ def manage_connection(connection, hostname):
 
 def main():
     hostname = "{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m%d"))
+    hostname = hostname.replace('-','')
     create_table(hostname)
     create_table_ip()
     while (1):
