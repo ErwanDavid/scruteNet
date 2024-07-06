@@ -103,7 +103,7 @@ def manage_connection(connection, hostname):
     upsert_sql(connDict, hostname)
 
 def main():
-    hostname = "{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m%d"))
+    hostname = "{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m"))
     hostname = hostname.replace('-','')
     create_table(hostname)
     create_table_ip()
