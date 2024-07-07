@@ -9,7 +9,7 @@ import json                     #parse json sensor output
 
 
 # create logger
-logger = logging.getLogger('scruteMain')
+logger = logging.getLogger('monitorMain')
 logger.setLevel(logging.INFO)
 
 # create console handler and set level to debug
