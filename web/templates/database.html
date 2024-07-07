@@ -1,0 +1,17 @@
+<!doctype html>
+<title>SQL look: understand data</title>
+
+<head><link rel="stylesheet" href="../static/style.css"></head>
+
+{% if databaseInfo %}
+  <h1>Exploring {{ databaseInfo }}</h1>
+  {% for table in listHW %}
+    <a href="/detail/table/{{ table }}"><h4>Hardware table  :{{ table }}</h4></a>
+  {% endfor %}
+  {% for view in listNET %}
+    <a href="/detail/view/{{ view }}"><h4>Network table   :{{ view }}</h4></a>
+  {% endfor %}
+
+{% else %}
+  <h1>No data !</h1>
+{% endif %}

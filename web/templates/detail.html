@@ -1,0 +1,31 @@
+<!doctype html>
+<title>SQL look: understand {{ tableName }} </title>
+<head><link rel="stylesheet" href="../../static/style.css"></head>
+
+{% if databaseInfo %}
+  <h1>Exploring {{ databaseInfo }}</h1>
+  <h2>Table {{ tableName }} Type {{ objType }}</h2>
+  <p>Count {{ countLine }}</p>
+
+  <table>
+    <caption>
+        {{ tableName }}
+    </caption>
+        <tr>
+            {% for field in listField %}
+                <th scope="col">{{ field['name'] }} {{ field['fieldType'] }} </th>
+            {% endfor %}
+        </tr>
+        {% for data in topRecod %}
+            <tr>
+                {% for field in data %}
+                    <th>{{ field }} </th>
+                {% endfor %}
+            </tr>  
+        {% endfor %}
+    </table>
+
+
+{% else %}
+  <h1>No data !</h1>
+{% endif %}

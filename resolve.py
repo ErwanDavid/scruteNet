@@ -11,7 +11,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-conn = sqlite3.connect("DBs/db_connection.sqlite3", timeout=20)
+conn = sqlite3.connect("DBs/db.sqlite3", timeout=20)
 cursor = conn.cursor()
 
 def insert_sql(ip, name):
@@ -43,6 +43,7 @@ def get_name(listIp):
 
 def main():
     while (1):
+        time.sleep(60)
         start = time.perf_counter()
         listIp = get_ip()
         logger.info("Size {}".format(len(listIp)))
@@ -50,7 +51,7 @@ def main():
         conn.commit()
         finish = time.perf_counter()
         logger.info(f'Finished in {round(finish-start, 2)} second(s)')
-        time.sleep(60)
+        
     
 
 if __name__ == '__main__':

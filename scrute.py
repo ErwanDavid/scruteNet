@@ -23,7 +23,7 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-conn = sqlite3.connect("DBs/db_connection.sqlite3", timeout=20)
+conn = sqlite3.connect("DBs/db.sqlite3", timeout=20)
 cursor = conn.cursor()
 
 map_psutil_sql = {}
