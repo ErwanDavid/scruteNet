@@ -2,6 +2,11 @@ import logging
 import sqlite3
 import sys, time
 import socket
+import json
+
+configData = {}
+configFile = 'config\\config.json'
+
 
 logger = logging.getLogger('resolveMain')
 logger.setLevel(logging.DEBUG)
@@ -11,8 +16,11 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-conn = sqlite3.connect("DBs/db.sqlite3", timeout=20)
-cursor = conn.cursor()
+def readConf():
+    global configData
+    with open(configFile, 'r') as f:
+        configData = json.load(f)
+
 
 def insert_sql(ip, name):
     update_statement = "UPDATE t_ip SET name=? WHERE ip = ?"
@@ -36,14 +44,19 @@ def get_name(listIp):
             #logger.debug(item + " RESOLVED " + myName[0])
             logger.debug(" RESOLVED " + myName[0])
             insert_sql(item, myName[0])
+            conn.commit()
         except socket.herror as err:
             logger.error("Cannot resolve " + item + " " + str(err))
             insert_sql(item, 'host not found')
-            conn.commit()
 
 def main():
+    readConf()
+    global conn
+    global cursor
+    conn = sqlite3.connect(configData["DBFILE"], timeout=20)
+    cursor = conn.cursor()
     while (1):
-        time.sleep(60)
+        time.sleep(configData["RESOLVE_SLEEP"])
         start = time.perf_counter()
         listIp = get_ip()
         logger.info("Size {}".format(len(listIp)))
@@ -56,8 +69,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
-""" select h.rip, h.seens_nbr, h.seens_last, i1.name
-from t_minipc_20240407 h, t_ip i1
-where h.rip = i1.ip and i1.name is not null
-order by h.seens_nbr desc """

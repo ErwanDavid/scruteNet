@@ -1,0 +1,8 @@
+{
+    "DBPATH": "sqlite:///C:/Users/erwan/Documents/db_monitor.sqlite3",
+    "DBFILE": "C:/Users/erwan/Documents/GIT_PERSO/db_monitor.sqlite3",
+    "NET_SLEEP" : 10,
+    "RESOLVE_SLEEP" : 100,
+    "HARDWARE_SLEEP" : 5,
+    "HW_HDD" : 2
+}

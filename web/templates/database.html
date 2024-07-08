@@ -1,15 +1,15 @@
 <!doctype html>
-<title>SQL look: understand data</title>
+<title>scruteNet</title>
 
 <head><link rel="stylesheet" href="../static/style.css"></head>
 
 {% if databaseInfo %}
-  <h1>Exploring {{ databaseInfo }}</h1>
-  {% for table in listHW %}
-    <a href="/detail/table/{{ table }}"><h4>Hardware table  :{{ table }}</h4></a>
+  <h1>Exploring Database </h1> <h2> {{ databaseInfo }} </h2>
+  {% for HWdetails in listHW %}
+    <a href="/detail/table/{{ HWdetails }}"><h4>Hardware table  :{{ HWdetails }}</h4></a>
   {% endfor %}
-  {% for view in listNET %}
-    <a href="/detail/view/{{ view }}"><h4>Network table   :{{ view }}</h4></a>
+  {% for NETdetails in listNET %}
+    <a href="/detail/view/{{ NETdetails }}"><h4>Network table   :{{ NETdetails }}</h4></a>
   {% endfor %}
 
 {% else %}

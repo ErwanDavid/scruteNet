@@ -1,10 +1,13 @@
 import psutil
-import sys
+import sys, json
 import socket
 import sqlite3
 import time
 from datetime import datetime
 import logging
+
+configData = {}
+configFile = 'config\\config.json'
 
 # create logger
 logger = logging.getLogger('scruteMain')
@@ -22,9 +25,7 @@ ch.setFormatter(formatter)
 
 # add ch to logger
 logger.addHandler(ch)
-
-conn = sqlite3.connect("DBs/db.sqlite3", timeout=20)
-cursor = conn.cursor()
+cursor = ''
 
 map_psutil_sql = {}
 map_psutil_sql[0] = "fd"
@@ -40,11 +41,26 @@ list_field_crTable = ['fd integer', 'familly', 'type', 'laddr', 'raddr', 'lip', 
 list_str = ",".join(list_field)
 list_str_crTable = ",".join(list_field_crTable)
 
+def readConf():
+    global configData
+    print(configFile)
+    with open(configFile, 'r') as f:
+        configData = json.load(f)
+        print(configData)
+
 def create_table(hostname):
     sql_crTable = "CREATE TABLE IF NOT EXISTS t_" + hostname + " (" +  list_str_crTable
     sql_crTable = sql_crTable +  ", CONSTRAINT pk_" + hostname + " PRIMARY KEY (lip, lpo, rip, rpo));"
     logger.info(sql_crTable)
     cursor.execute(sql_crTable)
+    sql_crTable = """ CREATE VIEW IF NOT EXISTS t_minipc_202407_res as select h.seens_nbr, h.rip, i1.name, h.pname, h.seens_last
+    from t_minipc_202407 h, t_ip i1
+    where h.rip = i1.ip and i1.name is not null and rip != '127.0.0.1'
+    order by h.seens_nbr desc """
+    logger.info(sql_crTable)
+    cursor.execute(sql_crTable)
+
+
 
 def create_table_ip():
     sql_crTable = "CREATE TABLE IF NOT EXISTS t_ip (ip,name, CONSTRAINT pk_ip PRIMARY KEY (ip));"
@@ -101,8 +117,14 @@ def manage_connection(connection, hostname):
     connDict['seens_last'] = datetime.now()
     upsert_sql_ip(connDict)
     upsert_sql(connDict, hostname)
+    conn.commit()
 
 def main():
+    readConf()
+    global conn
+    global cursor
+    conn = sqlite3.connect(configData["DBFILE"], timeout=20)
+    cursor = conn.cursor()
     hostname = "{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m"))
     hostname = hostname.replace('-','')
     create_table(hostname)
@@ -116,7 +138,7 @@ def main():
         conn.commit()
         finish = time.perf_counter()
         logger.info(f'Finished in {round(finish-start, 2)} second(s)')
-        time.sleep(10)
+        time.sleep(configData["NET_SLEEP"])
         
 
 if __name__ == '__main__':

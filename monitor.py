@@ -25,14 +25,17 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-conn = sqlite3.connect("DBs/db.sqlite3", timeout=20)
-cursor = conn.cursor()
+configData = {}
+configFile = 'config\\config.json'
 
-nbr_disk = 2
+def readConf():
+    global configData
+    with open(configFile, 'r') as f:
+        configData = json.load(f)
 
 def create_table(hostname):
     list_field_crTable = ['tm datetime','cpu float', 'mem float']
-    for diskID in range(0, nbr_disk):
+    for diskID in range(0, configData["HW_HDD"]):
         list_field_crTable.append('hdd_' + str(diskID))
     list_str_crTable = ",".join(list_field_crTable)
     sql_crTable = "CREATE TABLE IF NOT EXISTS {}  ( {} )".format(hostname, list_str_crTable)
@@ -75,6 +78,10 @@ def insert_monitoring(hostname, cpu_usage, free_mem, hdd_array):
     cursor.execute(sql_insert, (cpu_usage, free_mem,hdd_array[0],hdd_array[1],))
 
 def main():
+    readConf()
+    global cursor
+    conn = sqlite3.connect(configData["DBFILE"], timeout=20)
+    cursor = conn.cursor()
     hostname = "hw_{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m"))
     hostname = hostname.replace('-','')
     create_table(hostname)
@@ -85,7 +92,7 @@ def main():
         free_mem = get_free_mem()
         logger.debug(f'MEM usage  {free_mem}')
         hdd_array = []
-        for diskID in range(0, nbr_disk):
+        for diskID in range(0, configData["HW_HDD"]):
             current_disk, freespace = get_disk_free(diskID)
             hdd_array.append(freespace)
         logger.debug(f'HDD usage  {hdd_array}')
@@ -93,7 +100,7 @@ def main():
         conn.commit()
         finish = time.perf_counter()
         logger.info(f'Finished in {round(finish-start, 2)} second(s) cpu usage : {cpu_usage}')
-        time.sleep(30)
+        time.sleep(configData["HARDWARE_SLEEP"])
         
 
 if __name__ == '__main__':
