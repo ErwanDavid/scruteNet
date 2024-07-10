@@ -49,14 +49,15 @@ def readConf():
         print(configData)
 
 def create_table(hostname):
-    sql_crTable = "CREATE TABLE IF NOT EXISTS t_" + hostname + " (" +  list_str_crTable
-    sql_crTable = sql_crTable +  ", CONSTRAINT pk_" + hostname + " PRIMARY KEY (lip, lpo, rip, rpo));"
+    #sql_crTable = "CREATE TABLE IF NOT EXISTS t_" + hostname + " (" +  list_str_crTable
+    #sql_crTable = sql_crTable +  ", CONSTRAINT pk_" + hostname + " PRIMARY KEY (lip, lpo, rip, rpo));"
+    sql_crTable = "CREATE TABLE IF NOT EXISTS t_{} ( {} , CONSTRAINT pk_{} PRIMARY KEY (lip, lpo, rip, rpo));".format(hostname, list_str_crTable, hostname)
     logger.info(sql_crTable)
     cursor.execute(sql_crTable)
-    sql_crTable = """ CREATE VIEW IF NOT EXISTS t_minipc_202407_res as select h.seens_nbr, h.rip, i1.name, h.pname, h.seens_last
-    from t_minipc_202407 h, t_ip i1
+    sql_crTable = """ CREATE VIEW IF NOT EXISTS t_{}_res as select h.seens_nbr, h.rip, i1.name, h.pname, h.seens_last
+    from t_{} h, t_ip i1
     where h.rip = i1.ip and i1.name is not null and rip != '127.0.0.1'
-    order by h.seens_nbr desc """
+    order by h.seens_nbr desc """.format(hostname, hostname)
     logger.info(sql_crTable)
     cursor.execute(sql_crTable)
 
