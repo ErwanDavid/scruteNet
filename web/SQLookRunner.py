@@ -19,7 +19,8 @@ def showDatabaseInfo():
     app.logger.debug('List tables %s',databaseUrl)
     currDB.listHardware()
     currDB.listNetwork()
-    return render_template('database.html', databaseInfo=databaseUrl,listHW=currDB.hardware, \
+    currDB.Info()
+    return render_template('database.html', databaseInfo=currDB.getInfo,listHW=currDB.hardware, \
                 listNET=currDB.network)
 
 @app.route("/table/<objType>/<objName>")

@@ -8,6 +8,12 @@ def getConnection(dburl):
     dbEngine=create_engine(dburl)
     return dbEngine.connect()
 
+def getInfo(engine):
+    DB_info = engine.url.database
+    print('Get info on DB  %s',DB_info)
+    return DB_info
+    
+
 def getlistHardware(dbConn):
     insp = inspect(dbConn) 
     getTableHW = insp.get_table_names()
@@ -22,8 +28,8 @@ def getlistNetwork(dbConn):
     getTableNET = insp.get_table_names() + insp.get_view_names()
     tableArrNET = []
     for currTable in getTableNET:
-         if 't_' in currTable:
-              tableArrNET.append(currTable)
+        if 't_' in currTable or 'v_' in currTable:
+            tableArrNET.append(currTable)
     return tableArrNET
 
 def getTableSize(dbConn, tableName):
@@ -45,8 +51,13 @@ def getTableField(dbConn, dbEngine, tableName):
 def gettopRecord(dbConn, tableName, limit):
     if 'hw_' in tableName :
          orderBy = "tm desc"
-    else:
+    elif 'v_' in tableName :
          orderBy = "seens_nbr desc"
+    elif tableName == 't_ip':
+        orderBy = "ip desc"
+    else:
+        orderBy = "seens_nbr desc"
+
     query = text("select * from {} order by {} limit {}".format(tableName, orderBy, str(limit)))
     print(query)
     return  dbConn.execute(query)

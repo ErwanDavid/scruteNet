@@ -54,17 +54,17 @@ def create_table(hostname):
     sql_crTable = "CREATE TABLE IF NOT EXISTS t_{} ( {} , CONSTRAINT pk_{} PRIMARY KEY (lip, lpo, rip, rpo));".format(hostname, list_str_crTable, hostname)
     logger.info(sql_crTable)
     cursor.execute(sql_crTable)
-    sql_crTable = """ CREATE VIEW IF NOT EXISTS t_{}_res as select h.seens_nbr, h.rip, i1.name, h.pname, h.seens_last
-    from t_{} h, t_ip i1
-    where h.rip = i1.ip and i1.name is not null and rip != '127.0.0.1'
-    order by h.seens_nbr desc """.format(hostname, hostname)
+    sql_crTable = """ CREATE VIEW IF NOT EXISTS v_{}_res as select seens_nbr, rip, name, registrar,creation_date, country, pname, seens_last
+    from t_{} , t_ip
+    where rip = ip and name is not null and rip != '127.0.0.1'
+    order by seens_nbr desc """.format(hostname, hostname)
     logger.info(sql_crTable)
     cursor.execute(sql_crTable)
 
 
 
 def create_table_ip():
-    sql_crTable = "CREATE TABLE IF NOT EXISTS t_ip (ip,name, CONSTRAINT pk_ip PRIMARY KEY (ip));"
+    sql_crTable = "CREATE TABLE IF NOT EXISTS t_ip (ip,name,registrar, creation_date, country, CONSTRAINT pk_ip PRIMARY KEY (ip));"
     logger.debug(sql_crTable)
     cursor.execute(sql_crTable)
 
