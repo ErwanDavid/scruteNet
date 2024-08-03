@@ -80,7 +80,8 @@ def insert_monitoring(hostname, cpu_usage, free_mem, hdd_array):
 def main():
     readConf()
     global cursor
-    conn = sqlite3.connect(configData["DBFILE"], timeout=20)
+    database_url = configData["DBPATH"].replace("sqlite:///","")
+    conn = sqlite3.connect(database_url, timeout=20)
     cursor = conn.cursor()
     hostname = "hw_{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m"))
     hostname = hostname.replace('-','')

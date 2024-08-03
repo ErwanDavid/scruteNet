@@ -70,7 +70,8 @@ def main():
     logger.info("Readed conf ")
     global conn
     global cursor
-    conn = sqlite3.connect(configData["DBFILE"], timeout=20)
+    database_url = configData["DBPATH"].replace("sqlite:///","")
+    conn = sqlite3.connect(database_url, timeout=20)
     cursor = conn.cursor()
     while (1):
         time.sleep(configData["RESOLVE_SLEEP"])
