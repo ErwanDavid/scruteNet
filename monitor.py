@@ -26,7 +26,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 configData = {}
-configFile = 'config\\config.json'
+configFile = sys.argv[1]
 
 def readConf():
     global configData
@@ -81,6 +81,7 @@ def main():
     readConf()
     global cursor
     database_url = configData["DBPATH"].replace("sqlite:///","")
+    logger.info(f'Hello opening db {database_url} ')
     conn = sqlite3.connect(database_url, timeout=20)
     cursor = conn.cursor()
     hostname = "hw_{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m"))

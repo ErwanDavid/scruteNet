@@ -7,7 +7,7 @@ from datetime import datetime
 import logging
 
 configData = {}
-configFile = 'config\\config.json'
+configFile = sys.argv[1]
 
 # create logger
 logger = logging.getLogger('scruteMain')
@@ -43,7 +43,6 @@ list_str_crTable = ",".join(list_field_crTable)
 
 def readConf():
     global configData
-    print(configFile)
     with open(configFile, 'r') as f:
         configData = json.load(f)
         print(configData)

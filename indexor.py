@@ -33,10 +33,11 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 configData = {}
-configFile = 'config\\config.json'
+configFile = sys.argv[1]
 with open(configFile, 'r') as f:
     configData = json.load(f)
 database_url = configData["DBPATH"].replace("sqlite:///","")
+logger.info(f'Hello opening db {database_url} ')
 conn = sqlite3.connect(database_url, timeout=20)
 cursor = conn.cursor()
 hostname = "fs_{}_{}".format(socket.gethostname(),datetime.now().strftime("%Y%m"))

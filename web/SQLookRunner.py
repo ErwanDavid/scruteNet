@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 app.logger.setLevel('DEBUG')
 
-res = app.config.from_file("../config/config.json", load=json.load)
+res = app.config.from_file(sys.argv[1], load=json.load)
 databaseUrl = app.config["DBPATH"]
 app.logger.info('DBPATH in use %s',databaseUrl)
 
@@ -35,20 +35,6 @@ def showTableInfo(objType=None,objName=None):
     app.logger.debug('Get info done %s',objName)
     return render_template('table.html', databaseInfo=databaseUrl,tableName=currTable.name, \
                 countLine=currTable.count, objType=currTable.type, listField=currTable.listfield)
-
-""" @app.route("/detail/<objType>/<objName>")
-def showTableDetail(objType=None,objName=None):
-    app.logger.info('Get details %s',objName)
-    if objType =='table':
-        currTable = Table(databaseUrl, objName,'table')
-    else:
-        currTable = Table(databaseUrl, objName,'view')
-    currTable.listField()
-    currTable.getTopRecord()
-    app.logger.debug('Get details done %s',objName)
-    return render_template('detail.html', databaseInfo=databaseUrl,tableName=currTable.name, \
-                topRecod=currTable.topRecord, listField=currTable.listfield) """
-
 
 
 @app.route("/detail/<objType>/<objName>")

@@ -1,5 +1,10 @@
 /*.sqlite3*
 /old
+/build
+/dist
 /venv
 DBs/*
 web/__pycache__/*
+web/build
+web/dist
+*spec

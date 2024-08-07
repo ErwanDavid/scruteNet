@@ -6,7 +6,7 @@ import json
 from ipwhois import IPWhois
 
 configData = {}
-configFile = 'config\\config.json'
+configFile = sys.argv[1]
 
 
 logger = logging.getLogger('resolveMain')
@@ -67,10 +67,10 @@ def get_dns(currentIp):
 
 def main():
     readConf()
-    logger.info("Readed conf ")
     global conn
     global cursor
     database_url = configData["DBPATH"].replace("sqlite:///","")
+    logger.info(f'Hello opening db {database_url} ')
     conn = sqlite3.connect(database_url, timeout=20)
     cursor = conn.cursor()
     while (1):
