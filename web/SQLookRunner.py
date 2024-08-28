@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 app.logger.setLevel('DEBUG')
 
-res = app.config.from_file(sys.argv[1], load=json.load)
+res = app.config.from_file('../config/config.json', load=json.load)
 databaseUrl = app.config["DBPATH"]
 app.logger.info('DBPATH in use %s',databaseUrl)
 
