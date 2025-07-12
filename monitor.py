@@ -60,11 +60,11 @@ def get_disk_free(disk_id):
         name_info = []
         for disk in disk_info:
             #print(disk)
-            if disk.fstype == "xfs" or disk.fstype == "btrfs" or disk.fstype == "ext4" or disk.fstype == "vfat"  or disk.fstype == "exFAT" or disk.fstype == "NTFS":
+            if disk.fstype == "xfs" or disk.fstype == "btrfs" or disk.fstype == "ext4" or disk.fstype == "vfat"  or disk.fstype == "exfat" or disk.fstype == "NTFS":
                 if 'boot' not in disk.mountpoint :
                     free_info.append(psutil.disk_usage(disk.mountpoint).percent)
                     name_info.append(disk.mountpoint)
-        #print(free_info)
+        #print(name_info, free_info)
         clean_name = name_info[disk_id].replace('/','-').replace('\\','').replace(':','')
         if clean_name == '-':
             clean_name = 'root'

@@ -11,11 +11,11 @@ configFile = sys.argv[1]
 
 # create logger
 logger = logging.getLogger('scruteMain')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # create console handler and set level to debug
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+ch.setLevel(logging.DEBUG)
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -50,7 +50,7 @@ def readConf():
 def create_table(hostname):
     #sql_crTable = "CREATE TABLE IF NOT EXISTS t_" + hostname + " (" +  list_str_crTable
     #sql_crTable = sql_crTable +  ", CONSTRAINT pk_" + hostname + " PRIMARY KEY (lip, lpo, rip, rpo));"
-    sql_crTable = "CREATE TABLE IF NOT EXISTS t_{} ( {} , CONSTRAINT pk_{} PRIMARY KEY (lip, lpo, rip, rpo));".format(hostname, list_str_crTable, hostname)
+    sql_crTable = "CREATE TABLE IF NOT EXISTS t_{} ( {} , CONSTRAINT pk_{} PRIMARY KEY (lip, lpo, rip, rpo, pname));".format(hostname, list_str_crTable, hostname)
     logger.info(sql_crTable)
     cursor.execute(sql_crTable)
     sql_crTable = """ CREATE VIEW IF NOT EXISTS v_{}_res as select seens_nbr, rip, name, registrar,creation_date, country, pname, seens_last
@@ -73,7 +73,7 @@ def upsert_sql(connDict, hostname):
     for item in list_field:
         to_db.append(connDict[item])
         to_db_srt += str(connDict[item]) + ' '
-    sql_insert = "INSERT INTO  t_" + hostname + " (" + list_str + ")  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (lip, lpo, rip, rpo) DO UPDATE SET seens_nbr=seens_nbr+1, seens_last=excluded.seens_last;"
+    sql_insert = "INSERT INTO  t_" + hostname + " (" + list_str + ")  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (lip, lpo, rip, rpo, pname) DO UPDATE SET seens_nbr=seens_nbr+1, seens_last=excluded.seens_last;"
     logger.debug(sql_insert + to_db_srt )
     cursor.execute(sql_insert, to_db)
 
@@ -86,38 +86,48 @@ def upsert_sql_ip(connDict):
 def manage_connection(connection, hostname):
     connDict={}
     for myId in range(len(connection)):
-        if map_psutil_sql[myId] in 'laddr':
-            connDict[map_psutil_sql[myId]] = str(connection[myId])
-            connDict['lip'] = connection[myId][0]
-            connDict['lpo'] = connection[myId][1]
-
-        elif map_psutil_sql[myId] in 'raddr':
-            connDict[map_psutil_sql[myId]] = str(connection[myId])
-            if len(connection[myId]) > 1:
-                connDict['rip'] = connection[myId][0]
-                connDict['rpo'] = connection[myId][1]
-            else:
-                connDict['rip'] = ''
-                connDict['rpo'] = ''
-        elif map_psutil_sql[myId] in 'pid':
-            connDict[map_psutil_sql[myId]] = connection[myId]
-            try:
-                process = psutil.Process(connection[myId])
-                process_name = process.name()
-                connDict['pname'] = process_name
-            except:
-                connDict['pname'] = 'unknown'
-        else:
-            #logger.debug(str(connection[myId]) + " type " + str(type(connection[myId])))
-            if type(connection[myId]) == int or type(connection[myId]) == str :
-                connDict[map_psutil_sql[myId]] = connection[myId]
-            else:
+        if connection[myId]:
+            if map_psutil_sql[myId] in 'laddr':
                 connDict[map_psutil_sql[myId]] = str(connection[myId])
-    connDict['seens_nbr'] =1
-    connDict['seens_last'] = datetime.now()
-    upsert_sql_ip(connDict)
-    upsert_sql(connDict, hostname)
-    conn.commit()
+                connDict['lip'] = connection[myId][0]
+                connDict['lpo'] = connection[myId][1]
+
+            elif map_psutil_sql[myId] in 'raddr':
+                connDict[map_psutil_sql[myId]] = str(connection[myId])
+                if len(connection[myId]) > 1:
+                    connDict['rip'] = connection[myId][0]
+                    connDict['rpo'] = connection[myId][1]
+                else:
+                    connDict['rip'] = ''
+                    connDict['rpo'] = ''
+            elif map_psutil_sql[myId] in 'pid':
+                #logger.debug(str(connection[myId]) + " type IP")
+                connDict[map_psutil_sql[myId]] = connection[myId]
+                try:
+                    process = psutil.Process(connection[myId])
+                    process_name = process.name()
+                    #logger.debug(process_name + " type IP")
+                    connDict['pname'] = process_name
+                except:
+                    connDict['pname'] = 'unknown'
+            else:
+                #logger.debug(str(connection[myId]) + " type " + str(type(connection[myId])))
+                if type(connection[myId]) == int or type(connection[myId]) == str :
+                    connDict[map_psutil_sql[myId]] = connection[myId]
+                else:
+                    connDict[map_psutil_sql[myId]] = str(connection[myId])
+            connDict['seens_nbr'] =1
+            connDict['seens_last'] = datetime.now()
+            if 'statut' not in connDict.keys() :
+                connDict['statut'] = '???'
+            if 'pid' not in connDict.keys() :
+                connDict['pid'] = 0
+                connDict['pname'] = '???'
+            if 'rip' in connDict.keys() :
+                print(connDict)
+                upsert_sql_ip(connDict)
+                upsert_sql(connDict, hostname)
+                conn.commit()
 
 def main():
     readConf()

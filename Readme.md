@@ -19,7 +19,7 @@ You need to create a virtual env, called 'venv' in the root of the repo.
 `python -m venv ./venv `
 
 Activate it :
-`./venv/bin/activate`
+`source ./venv/bin/activate`
 or
 `.\venv\Script\activate`
 
@@ -34,6 +34,7 @@ pip install pikepdf
 pip install eyed3
 pip install magika
 pip install python-docx
+pip install ipwhois
 ```
 
 
@@ -44,6 +45,9 @@ Update the launcher & the config file (in ./config) & launch the .bat file
 
 ### Linux
 
+Update the launcher & the config file (in ./config) & launch the .sh file
+chmod +x launcher.sh
+./launcher.sh
 
 
 Todo : compiler eg https://nuitka.net/user-documentation/user-manual.html

@@ -8,3 +8,4 @@ web/__pycache__/*
 web/build
 web/dist
 *spec
+nohup.out
