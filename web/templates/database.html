@@ -5,11 +5,13 @@
 
 {% if listHW %}
   <h1>Exploring Database  {{ databaseInfo }} </h1>
+  <h2>Hardware tables:</h2>
   {% for HWdetails in listHW %}
-    <a href="/detail/table/{{ HWdetails }}"><h4>Hardware table  :{{ HWdetails }}</h4></a>
+    <a href="/detail/table/{{ HWdetails }}"><h4> - {{ HWdetails }}</h4></a>
   {% endfor %}
+  <h2>Network tables:</h2>
   {% for NETdetails in listNET %}
-    <a href="/detail/view/{{ NETdetails }}"><h4>Network table   :{{ NETdetails }}</h4></a>
+    <a href="/detail/view/{{ NETdetails }}"><h4> - {{ NETdetails }}</h4></a>
   {% endfor %}
 
 {% else %}

@@ -1,0 +1,13 @@
+[Unit]
+Description=A set of script to check connection taking place on your system
+After=syslog.target network.target
+
+[Service]
+WorkingDirectory=/home/erwan/GIT_PERSO/scruteNet/
+ExecStart=/home/erwan/GIT_PERSO/scruteNet/launcher.sh
+
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=multi-user.target

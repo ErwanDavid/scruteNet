@@ -49,6 +49,10 @@ Update the launcher & the config file (in ./config) & launch the .sh file
 chmod +x launcher.sh
 ./launcher.sh
 
+sudo cp ./scrutenet.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl start scrutenet
+systemctl enable scrutenet
 
 Todo : compiler eg https://nuitka.net/user-documentation/user-manual.html
 https://stackoverflow.com/questions/5458048/how-can-i-make-a-python-script-standalone-executable-to-run-without-any-dependen
