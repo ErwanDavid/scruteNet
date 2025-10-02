@@ -1,9 +1,0 @@
-{
-    "DBPATH": "sqlite:////home/erwan/db/monitoring_5.sqlite",
-    "NET_SLEEP" : 10,
-    "RESOLVE_SLEEP" : 5,
-    "HARDWARE_SLEEP" : 5,
-    "INDEXOR_SLEEP" : 60,
-    "HW_HDD" : 2,
-    "INDEXOR_PATH" : "/home/erwan/"
-}
