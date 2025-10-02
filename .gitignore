@@ -9,3 +9,5 @@ web/build
 web/dist
 *spec
 nohup.out
+connexions.db
+connexions.log

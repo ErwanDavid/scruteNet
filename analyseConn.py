@@ -42,15 +42,6 @@ def get_active_connections():
             })
     return connections
 
-""" def load_dns_cache(db_path='connexions.db'):
-    global dns_cache
-    uri = f'file:{db_path}?mode=ro'
-    conn = sqlite3.connect(uri, timeout=20, uri=True)
-    cursor = conn.cursor()
-    cursor.execute("SELECT remote_ip, hostname FROM dns_resolution")
-    dns_cache = {row[0]: row[1] for row in cursor.fetchall()}
-    conn.close()
-    logging.info("DNS cache loaded.") """
 
 def resolve_dns(ip):
     # Use cache first
@@ -215,6 +206,7 @@ def start_db_updater(interval_seconds=60, db_path='connexions.db'):
 
 # --- Application Dash ---
 app = Dash(__name__)
+app.title = "HoCoYs - Host connected to your system"
 
 app.layout = html.Div([
     html.H1("Host connected to your system"),

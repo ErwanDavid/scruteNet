@@ -16,6 +16,7 @@ You need to install in this venv some modules
 ```
 pip install dash
 pip install psutil
+pip install pandas
 pip install ipwhois
 ```
 
