@@ -12,6 +12,7 @@ from ipwhois import IPWhois
 # --- Configuration du logging ---
 logging.basicConfig(
     level=logging.INFO,
+    #level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler('connexions.log'),
@@ -67,6 +68,16 @@ def resolve_dns(ip):
     update_resolution(ip, hostname, desc, creadate, contry)
     return True
 
+def load_cache(db_path='connexions.db'):
+    global dns_cache
+    logging.debug("Load DNS cache from database")
+    conn = sqlite3.connect(db_path, timeout=20)
+    cursor = conn.cursor()
+    cursor.execute('SELECT remote_ip, hostname FROM dns_resolution')
+    rows = cursor.fetchall()
+    dns_cache = {row[0]: row[1] for row in rows}
+    conn.close()
+    logging.info(f"DNS cache loaded with {len(dns_cache)} entries")
     
 def update_resolution(ip, hostname, desc='', creadate='', contry='', db_path='connexions.db'):
     global dns_cache
@@ -123,6 +134,7 @@ def init_db(db_path='connexions.db'):
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_remote_ip_port ON active_connections(remote_ip, remote_port)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_remote_ip ON dns_resolution(remote_ip)')
     conn.commit()
+    load_cache(db_path)
     conn.close()
     logging.info("Database initiated.")
 
