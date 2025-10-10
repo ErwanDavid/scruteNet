@@ -202,6 +202,7 @@ def get_connections_data(db_path='connexions.db'):
                                c.remote_ip != '127.0.0.1'
         ORDER BY
             c.connection_count DESC
+        LIMIT 1000
         """, conn)
         conn.close()
     except:
@@ -230,8 +231,9 @@ app.layout = html.Div([
             options=[
                 {'label': 'Process name (pname)', 'value': 'pname'},
                 {'label': 'Remote IP', 'value': 'remote_ip'},
-                {'label': 'Hostname', 'value': 'hostname'},
-                {'label': 'Country', 'value': 'contry'},
+                {'label': 'Hostname (gethostbyaddr)', 'value': 'hostname'},
+                {'label': 'Description (whois)', 'value': 'desc'},
+                {'label': 'Country (whois)', 'value': 'contry'},
             ],
             value='pname',
             clearable=False,
