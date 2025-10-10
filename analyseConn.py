@@ -1,7 +1,8 @@
 import sqlite3
 import logging
 from datetime import datetime
-from dash import dcc, html, Dash, Input, Output,dash_table
+from dash import dcc, html, Dash, Input, Output, dash_table, callback_context, State
+from dash.exceptions import PreventUpdate
 import pandas as pd
 import threading
 import time
@@ -20,6 +21,7 @@ logging.basicConfig(
     ]
 )
 dns_cache = {}
+TOP_N = 20
 
 # --- Data detection ---
 def get_active_connections():
@@ -176,7 +178,6 @@ def update_connections_db(db_path='connexions.db'):
     logging.info("Database upserted")
 
 def get_connections_data(db_path='connexions.db'):
-    """Récupère les données jointes des deux tables."""
     df=pd.DataFrame()    
     uri = f'file:{db_path}?mode=ro'
     logging.debug("Get data from database")
@@ -190,7 +191,7 @@ def get_connections_data(db_path='connexions.db'):
             c.connection_count,
             c.last_seen,
             d.hostname,
-            substr(d.desc, 1, 20) as desc,
+            substr(d.desc, 1, 30) as desc,
             d.contry,
             d.creadate
         FROM
@@ -198,7 +199,7 @@ def get_connections_data(db_path='connexions.db'):
         LEFT JOIN
             dns_resolution d ON c.remote_ip = d.remote_ip
         WHERE
-                               d.hostname != 'localhost'
+                               c.remote_ip != '127.0.0.1'
         ORDER BY
             c.connection_count DESC
         """, conn)
@@ -222,6 +223,27 @@ app.title = "HoCoYs - Host connected to your system"
 
 app.layout = html.Div([
     html.H1("Host connected to your system"),
+    html.Div([
+        html.Label('Select a grouping criteria:'),
+        dcc.Dropdown(
+            id='agg-field',
+            options=[
+                {'label': 'Process name (pname)', 'value': 'pname'},
+                {'label': 'Remote IP', 'value': 'remote_ip'},
+                {'label': 'Hostname', 'value': 'hostname'},
+                {'label': 'Country', 'value': 'contry'},
+            ],
+            value='pname',
+            clearable=False,
+            style={'width': '300px'}
+        )
+    ], style={'marginBottom': '10px'}),
+    dcc.Graph(
+        id='pname-histogram',
+        figure={}
+    ),
+    dcc.Store(id='pname-filter-store'),
+    html.Div([html.Button('Clear filter', id='clear-filter', n_clicks=0), html.Span(id='filter-indicator', style={'marginLeft': '10px'})]),
     dash_table.DataTable(
         id='connexions-table',
         sort_action='native',
@@ -244,10 +266,114 @@ app.layout = html.Div([
 
 @app.callback(
     Output('connexions-table', 'data'),
-    Input('interval-component', 'n_intervals')
+    Output('filter-indicator', 'children'),
+    Input('interval-component', 'n_intervals'),
+    Input('agg-field', 'value'),
+    Input('pname-filter-store', 'data')
 )
-def update_table(n):
-    return get_connections_data().to_dict('records')
+def update_table(n, agg_field, filter_data):
+    df = get_connections_data()
+    indicator = ''
+    field = None
+    value = None
+    # Validate filter_data matches current agg_field. If not, ignore stored filter.
+    if filter_data and 'field' in filter_data and filter_data.get('value'):
+        field = filter_data['field']
+        value = filter_data['value']
+        if field != agg_field:
+            # stored filter is for a different aggregation field; ignore it
+            field = None
+            value = None
+        # handle 'Other' by excluding top N values for the selected field
+    if filter_data and field and value:
+        if value == 'Other':
+            # recompute top N to know which to exclude
+            if 'connection_count' in df.columns:
+                agg = df.groupby(field)['connection_count'].sum().reset_index()
+            else:
+                agg = df.groupby(field).size().reset_index(name='connection_count')
+            agg = agg.sort_values('connection_count', ascending=False)
+            top_vals = agg.head(TOP_N)[field].tolist()
+            df = df[~df[field].isin(top_vals)]
+            indicator = f"Filtered: Other (excluding top {TOP_N} by {field})"
+        else:
+            df = df[df[field] == value]
+            indicator = f"Filtered: {field} = {value}"
+    return df.to_dict('records'), indicator
+
+
+@app.callback(
+    Output('pname-filter-store', 'data'),
+    Input('pname-histogram', 'clickData'),
+    Input('clear-filter', 'n_clicks'),
+    State('agg-field', 'value'),
+    prevent_initial_call=True
+)
+def handle_hist_click(clickData, clear_clicks, agg_field):
+    ctx = callback_context
+    if not ctx.triggered:
+        raise PreventUpdate
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if triggered_id == 'clear-filter':
+        return {'field': None, 'value': None}
+    if triggered_id == 'pname-histogram' and clickData:
+        # clickData structure: points -> [ { 'x': 'value', ... } ]
+        try:
+            val = clickData['points'][0]['x']
+        except Exception:
+            val = None
+        return {'field': agg_field, 'value': val}
+    return {'field': None, 'value': None}
+
+
+@app.callback(
+    Output('pname-histogram', 'figure'),
+    Input('interval-component', 'n_intervals'),
+    Input('agg-field', 'value')
+)
+def update_pname_hist(n, agg_field):
+    # Build aggregated data by pname
+    df = get_connections_data()
+    if df is None or df.empty:
+        # empty figure
+        return {
+            'data': [],
+            'layout': {'title': 'No data available'}
+        }
+    # If connection_count exists use it, otherwise count occurrences
+    field = agg_field if agg_field in df.columns else 'pname'
+    if 'connection_count' in df.columns:
+        agg = df.groupby(field)['connection_count'].sum().reset_index()
+    else:
+        agg = df.groupby(field).size().reset_index(name='connection_count')
+    agg = agg.sort_values('connection_count', ascending=False)
+    # Limit to top N processes and group the rest as 'Other'
+    if len(agg) > TOP_N:
+        top = agg.head(TOP_N).copy()
+        others = agg.iloc[TOP_N:]
+        other_sum = others['connection_count'].sum()
+        other_row = pd.DataFrame([{agg_field: 'Other', 'connection_count': other_sum}])
+        display_df = pd.concat([top, other_row], ignore_index=True)
+    else:
+        display_df = agg
+
+    # build bar chart data
+    return {
+        'data': [
+            {
+                'type': 'bar',
+                'x': display_df[agg_field].tolist(),
+                'y': display_df['connection_count'].tolist(),
+                'marker': {'color': 'steelblue'}
+            }
+        ],
+        'layout': {
+            'title': f'Connections aggregated by {agg_field} (top {TOP_N})',
+            'xaxis': {'title': f'{agg_field}', 'tickangle': -45},
+            'yaxis': {'title': 'Connection count'},
+            'margin': {'b': 150}
+        }
+    }
 
 # --- Point d'entrée ---
 if __name__ == '__main__':
