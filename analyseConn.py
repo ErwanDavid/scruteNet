@@ -393,5 +393,5 @@ if __name__ == '__main__':
     init_db()
     start_db_updater(interval_seconds=10)  # Mise à jour toutes les 1 minute
     logging.info("Starting Dash app")
-    app.run(debug=True, port=8050)
+    app.run(debug=False, port=8050)
 
