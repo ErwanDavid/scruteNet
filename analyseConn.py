@@ -23,6 +23,20 @@ logging.basicConfig(
 dns_cache = {}
 TOP_N = 20
 
+def compute_agg(df, field, metric):
+    """Return a DataFrame with columns [field, 'connection_count'] containing the selected aggregation metric."""
+    if df is None or df.empty:
+        return pd.DataFrame(columns=[field, 'connection_count'])
+    # default: count rows per field
+    if metric == 'sum_connection_count' and 'connection_count' in df.columns:
+        agg = df.groupby(field)['connection_count'].sum().reset_index()
+    elif metric == 'unique_remote_ip' and 'remote_ip' in df.columns:
+        agg = df.groupby(field)['remote_ip'].nunique().reset_index(name='connection_count')
+    else:
+        # 'count' or fallback
+        agg = df.groupby(field).size().reset_index(name='connection_count')
+    return agg
+
 # --- Data detection ---
 def get_active_connections():
     logging.debug("get active connections using psutil")
@@ -235,11 +249,11 @@ app.layout = html.Div([
                 {'label': 'Description (whois)', 'value': 'desc'},
                 {'label': 'Country (whois)', 'value': 'contry'},
             ],
-            value='pname',
+            value='contry',
             clearable=False,
             style={'width': '300px'}
         )
-    ], style={'marginBottom': '10px'}),
+    ], style={'marginBottom': '0px'}),
     dcc.Graph(
         id='pname-histogram',
         figure={}
@@ -290,10 +304,7 @@ def update_table(n, agg_field, filter_data):
     if filter_data and field and value:
         if value == 'Other':
             # recompute top N to know which to exclude
-            if 'connection_count' in df.columns:
-                agg = df.groupby(field)['connection_count'].sum().reset_index()
-            else:
-                agg = df.groupby(field).size().reset_index(name='connection_count')
+            agg = compute_agg(df, field)
             agg = agg.sort_values('connection_count', ascending=False)
             top_vals = agg.head(TOP_N)[field].tolist()
             df = df[~df[field].isin(top_vals)]
@@ -344,10 +355,9 @@ def update_pname_hist(n, agg_field):
         }
     # If connection_count exists use it, otherwise count occurrences
     field = agg_field if agg_field in df.columns else 'pname'
-    if 'connection_count' in df.columns:
-        agg = df.groupby(field)['connection_count'].sum().reset_index()
-    else:
-        agg = df.groupby(field).size().reset_index(name='connection_count')
+    # Using default metric 'count' here (table callback may use selected metric via Input)
+    # The histogram should reflect the metric selected in the UI — read it from Request (we'll add Input)
+    agg = compute_agg(df, field, 'sum_connection_count')
     agg = agg.sort_values('connection_count', ascending=False)
     # Limit to top N processes and group the rest as 'Other'
     if len(agg) > TOP_N:
